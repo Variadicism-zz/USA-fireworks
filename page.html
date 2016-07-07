@@ -26,7 +26,8 @@ const float PARTICLE_LIGHT_RADIUS = 7.0;
 const int NUMBER_OF_FRAMES = 100;
 const float GRAVITY = 9.81;
 
-const float angle_change = 360.0 / float(NUMBER_OF_STREAMS);
+const float PI = 3.141592653589793238462643383;
+const float angle_change = 2.0 * PI / float(NUMBER_OF_STREAMS);
 
 void main() {
 	float animation_progress = float(time) / float(NUMBER_OF_FRAMES);
@@ -44,8 +45,8 @@ void main() {
 	WARNING: This could possibly be made more efficient!
 	The firework particles follow paths according to evenly spaced angles on concentric circles; therefore, the number of concentric circles will be the number of particles on a stream and the number of streams will determine the angles by which the particles are positioned on the concentric circles. We then factor in gravity to determine the final position of all the circles. */
 	float color_intensity = 0.0;
-	for (int circle = 0; circle < PARTICLES_PER_STREAM; circle++) {
-		for (float angle = 0.0; angle < 360.0; angle += angle_change) {
+	for (int circle = 1; circle <= PARTICLES_PER_STREAM; circle++) {
+		for (float angle = 0.0; angle < 2.0 * PI; angle += angle_change) {
 			/* Angle calculations are meant to start from the top, but coordinate axes start from the right; this adjusts for that difference. This prevents some shapes like pentagons from looking sideways and being vertically symmetrical instead of horizontally, which is more appealing. */
 			float coordinate_angle = angle + 90.0;
 			/* In addition, if there are an even number of particles, we should shift the first particle left half an angle change. */
