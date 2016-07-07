@@ -22,7 +22,7 @@ uniform int height;
 
 const int NUMBER_OF_STREAMS = 8;
 const int PARTICLES_PER_STREAM = 10;
-const float PARTICLE_LIGHT_RADIUS = 5.0;
+const float PARTICLE_LIGHT_RADIUS = 7.0;
 const int NUMBER_OF_FRAMES = 100;
 const float GRAVITY = 9.81;
 
@@ -34,11 +34,11 @@ void main() {
 	float center_x = float(width) / 2.0;
 	float center_y = float(height) / 2.0;
 	
-	float final_diameter = min(float(width), float(height)) / 2.0;
-	float diameter = final_diameter * animation_progress;
+	float final_radius = min(float(width), float(height)) / 3.0 /* r=screen/3; 2/3 of the screen will be used */;
+	float radius = final_radius * animation_progress;
 	
 	/* the initial velocity of a particle used to calculate gravity */
-	float v_0 = (float(final_diameter) / 2.0) / float(NUMBER_OF_FRAMES);
+	float v_0 = final_radius / float(NUMBER_OF_FRAMES);
 
 	/* Iterate over each particle of the firework to see how much color it adds to this pixel.
 	WARNING: This could possibly be made more efficient!
@@ -52,18 +52,18 @@ void main() {
 			if (mod(float(NUMBER_OF_STREAMS), 2.0) == 0.0)
 				coordinate_angle += angle_change / 2.0;
 			
-			float particle_circle_diameter = diameter * float(circle) / float(PARTICLES_PER_STREAM);
+			float particle_circle_radius = radius * float(circle) / float(PARTICLES_PER_STREAM);
 			
-			float particle_x = center_x + particle_circle_diameter * cos(coordinate_angle);
+			float particle_x = center_x + particle_circle_radius * cos(coordinate_angle);
 			
 			float v_0y = v_0 * sin(coordinate_angle);
-			float particle_y = center_y + particle_circle_diameter * sin(coordinate_angle) + 
+			float particle_y = center_y + particle_circle_radius * sin(coordinate_angle) + 
 				/* gravity = g_y*t^2/2 + v_0y*t */ GRAVITY * pow(animation_progress, 2.0) / 2.0 + v_0y * animation_progress;
 		
 			vec2 particle_position = vec2(particle_x, particle_y);
 		
 			color_intensity += max(0.0,
-				float(PARTICLE_LIGHT_RADIUS) - distance(particle_position, gl_FragCoord.xy)
+				(float(PARTICLE_LIGHT_RADIUS) - distance(particle_position, gl_FragCoord.xy)) / float(PARTICLE_LIGHT_RADIUS)
 			);
 		}
 	}
@@ -73,7 +73,7 @@ void main() {
 	const vec3 COLOR = vec3(1.0, 0.0, 0.0);
 
 	// output pixel color
-	gl_FragColor = vec4(COLOR.rgb * color_intensity, 1.0);
+	gl_FragColor = vec4(COLOR * color_intensity, 1.0);
 }
 		</script>
 	</body>
