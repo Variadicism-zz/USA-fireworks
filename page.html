@@ -1,0 +1,32 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<script type="text/javascript" charset="utf8" src="./renderer.js"></script>
+	</head>
+	<body onload="init()">
+		<canvas id="my-canvas" width="960" height="720"/>
+		<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec2 aVertexPosition;
+
+void main() {
+	gl_Position = vec4(aVertexPosition, 0, 1);
+}
+		</script>
+		<script id="fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+uniform int time;
+uniform int width;
+uniform int height;
+
+void main() {
+	// TODO TEMP
+	vec3 finalColor = vec3(float(time)/100.0, float(width)/1240.0, float(height)/720.0);
+
+	// output pixel color
+	gl_FragColor = vec4(finalColor, 1.0);
+}
+		</script>
+	</body>
+</html>
