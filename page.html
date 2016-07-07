@@ -24,7 +24,7 @@ const int NUMBER_OF_STREAMS = 8;
 const int PARTICLES_PER_STREAM = 10;
 const float PARTICLE_LIGHT_RADIUS = 7.0;
 const int NUMBER_OF_FRAMES = 100;
-const float GRAVITY = 9.81;
+const float GRAVITY = 9.81 * 10.0;
 
 const float PI = 3.141592653589793238462643383;
 const float angle_change = 2.0 * PI / float(NUMBER_OF_STREAMS);
@@ -37,29 +37,29 @@ void main() {
 	
 	float final_radius = min(float(width), float(height)) / 3.0 /* r=screen/3; 2/3 of the screen will be used */;
 	float radius = final_radius * animation_progress;
-	
-	/* the initial velocity of a particle used to calculate gravity */
-	float v_0 = final_radius / float(NUMBER_OF_FRAMES);
 
 	/* Iterate over each particle of the firework to see how much color it adds to this pixel.
 	WARNING: This could possibly be made more efficient!
 	The firework particles follow paths according to evenly spaced angles on concentric circles; therefore, the number of concentric circles will be the number of particles on a stream and the number of streams will determine the angles by which the particles are positioned on the concentric circles. We then factor in gravity to determine the final position of all the circles. */
 	float color_intensity = 0.0;
 	for (int circle = 1; circle <= PARTICLES_PER_STREAM; circle++) {
+		float particle_circle_radius = radius * float(circle) / float(PARTICLES_PER_STREAM);
+		
+		/* the initial velocity of a particle used to calculate gravity */
+		float v_0 = final_radius / float(NUMBER_OF_FRAMES) * float(circle) / float(PARTICLES_PER_STREAM);
+	
 		for (float angle = 0.0; angle < 2.0 * PI; angle += angle_change) {
 			/* Angle calculations are meant to start from the top, but coordinate axes start from the right; this adjusts for that difference. This prevents some shapes like pentagons from looking sideways and being vertically symmetrical instead of horizontally, which is more appealing. */
-			float coordinate_angle = angle + 90.0;
+			float coordinate_angle = angle + PI / 2.0;
 			/* In addition, if there are an even number of particles, we should shift the first particle left half an angle change. */
 			if (mod(float(NUMBER_OF_STREAMS), 2.0) == 0.0)
 				coordinate_angle += angle_change / 2.0;
 			
-			float particle_circle_radius = radius * float(circle) / float(PARTICLES_PER_STREAM);
-			
 			float particle_x = center_x + particle_circle_radius * cos(coordinate_angle);
 			
 			float v_0y = v_0 * sin(coordinate_angle);
-			float particle_y = center_y + particle_circle_radius * sin(coordinate_angle) + 
-				/* gravity = g_y*t^2/2 + v_0y*t */ GRAVITY * pow(animation_progress, 2.0) / 2.0 + v_0y * animation_progress;
+			float particle_y = center_y + particle_circle_radius * sin(coordinate_angle) - 
+				(/* gravity = g_y*t^2/2 + v_0y*t */ GRAVITY * animation_progress * animation_progress / 2.0 + v_0y * animation_progress);
 		
 			vec2 particle_position = vec2(particle_x, particle_y);
 		
