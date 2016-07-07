@@ -37,6 +37,8 @@ function start(_canvas) {
 	shader = createShaderProgram(vertex_shader, fragment_shader);
 	gl.useProgram(shader);
 	
+	handleTrivialVertices();
+	
 	shader.time = gl.getUniformLocation(shader, "time");
 	shader.width = gl.getUniformLocation(shader, "width");
 	shader.height = gl.getUniformLocation(shader, "height");
@@ -70,6 +72,8 @@ function render() {
 	gl.uniform1i(shader.time, time);
 	gl.uniform1i(shader.width, canvas.width);
 	gl.uniform1i(shader.height, canvas.height);
+	
+	gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 	
 	window.requestAnimationFrame(render);
 }
@@ -137,4 +141,21 @@ function createShader(shader_name, shader_type, source) {
 	}
 
 	return shader;
+}
+
+function handleTrivialVertices() {
+	var vertex_position = this.gl.getAttribLocation(shader, "aVertexPosition");
+
+	var buffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+	gl.bufferData(gl.ARRAY_BUFFER,
+		new Float32Array([
+			-1.0, -1.0, 0.0,
+			-1.0,  1.0, 0.0,
+			1.0, -1.0, 0.0,
+			1.0,  1.0, 0.0]),
+		gl.STATIC_DRAW
+	);
+	gl.enableVertexAttribArray(vertex_position);
+	gl.vertexAttribPointer(vertex_position, 3, gl.FLOAT, false, 0, 0);
 }
