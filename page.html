@@ -20,7 +20,7 @@ uniform int time;
 uniform int width;
 uniform int height;
 
-const int NUMBER_OF_STREAMS = 8;
+const int NUMBER_OF_STREAMS = 15;
 const int PARTICLES_PER_STREAM = 10;
 const float PARTICLE_LIGHT_RADIUS = 12.0;
 const float PARTICLE_FLASH_RADIUS = 3.0;
@@ -29,6 +29,19 @@ const float GRAVITY = 9.81 * 10.0;
 
 const float PI = 3.141592653589793238462643383;
 const float angle_change = 2.0 * PI / float(NUMBER_OF_STREAMS);
+
+float angleByIndex(int index) {
+	float angle = 2.0 * PI * float(index) / float(NUMBER_OF_STREAMS);
+
+	/* Angle calculations are meant to start from the top, but coordinate axes start from the right; this adjusts for that difference. This prevents some shapes like pentagons from looking sideways and being vertically symmetrical instead of horizontally, which is more appealing. */
+	angle += PI / 2.0;
+	
+	/* In addition, if there are an even number of particles, we should shift the first particle left half an angle change. */
+	if (mod(float(NUMBER_OF_STREAMS), 2.0) == 0.0)
+		angle += angle_change / 2.0;
+	
+	return angle;
+}
 
 void main() {
 	float animation_progress = float(time) / float(NUMBER_OF_FRAMES);
@@ -49,26 +62,26 @@ void main() {
 		
 		/* the initial velocity of a particle used to calculate gravity */
 		float v_0 = final_radius / float(NUMBER_OF_FRAMES) * float(circle) / float(PARTICLES_PER_STREAM);
-	
-		for (float angle = 0.0; angle < 2.0 * PI; angle += angle_change) {
-			/* Angle calculations are meant to start from the top, but coordinate axes start from the right; this adjusts for that difference. This prevents some shapes like pentagons from looking sideways and being vertically symmetrical instead of horizontally, which is more appealing. */
-			float coordinate_angle = angle + PI / 2.0;
-			/* In addition, if there are an even number of particles, we should shift the first particle left half an angle change. */
-			if (mod(float(NUMBER_OF_STREAMS), 2.0) == 0.0)
-				coordinate_angle += angle_change / 2.0;
-			
-			float particle_x = center_x + particle_circle_radius * cos(coordinate_angle);
-			
-			float v_0y = v_0 * sin(coordinate_angle);
-			float particle_y = center_y + particle_circle_radius * sin(coordinate_angle) - 
-				(/* gravity = g_y*t^2/2 + v_0y*t */ GRAVITY * animation_progress * animation_progress / 2.0 + v_0y * animation_progress);
 		
-			vec2 particle_position = vec2(particle_x, particle_y);
+		for (int yaw_index = 0; yaw_index < NUMBER_OF_STREAMS / 2; yaw_index++) {
+			float yaw = angleByIndex(yaw_index);
+			
+			for (int pitch_index = 0; pitch_index < NUMBER_OF_STREAMS; pitch_index++) {
+				float pitch = angleByIndex(pitch_index);
+			
+				float particle_x = center_x + particle_circle_radius * cos(pitch) * cos(yaw);
+			
+				float v_0y = v_0 * sin(pitch);
+				float particle_y = center_y + particle_circle_radius * sin(pitch)
+					- (/* gravity = g_y*t^2/2 + v_0y*t */ GRAVITY * animation_progress * animation_progress / 2.0 + v_0y * animation_progress);
 		
-			color_intensity += max(0.0,
-				(float(PARTICLE_LIGHT_RADIUS) - distance(particle_position, gl_FragCoord.xy)) / float(PARTICLE_LIGHT_RADIUS));
-			flash_intensity += max(0.0,
-				(float(PARTICLE_FLASH_RADIUS) - distance(particle_position, gl_FragCoord.xy)) / float(PARTICLE_FLASH_RADIUS));
+				vec2 particle_position = vec2(particle_x, particle_y);
+		
+				color_intensity += max(0.0,
+					(float(PARTICLE_LIGHT_RADIUS) - distance(particle_position, gl_FragCoord.xy)) / float(PARTICLE_LIGHT_RADIUS));
+				flash_intensity += max(0.0,
+					(float(PARTICLE_FLASH_RADIUS) - distance(particle_position, gl_FragCoord.xy)) / float(PARTICLE_FLASH_RADIUS));
+			}
 		}
 	}
 	color_intensity = min(1.0, color_intensity);
